@@ -1,0 +1,138 @@
+루트로 진행해서 필요 없었으나 권한이 필요하면 앞에 sudo를 붙여주기
+
+#자바 설치
+
+apt-get update
+apt-get install openjdk-8-jdk
+
+------------------------------------------
+
+#자동 설치 스크립트로 도커 설치하기(우분투로 설치하기 먼저 해볼것)
+wget -qO- https://get.docker.com/ | sh
+
+###우분투로 도커 설치하기
+https://roseline124.github.io/kuberdocker/2019/07/17/docker-study02.html#content-post
+
+###쿠버네티스 공식 사이트
+https://docs.docker.com/engine/install/ubuntu/
+
+#도커 다운을 위해 필요한 패키지 설치(4개)
+apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+
+#curl 명령어로 도커 다운받기 
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add
+
+#repository에 경로 추가하기 
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+apt-get update
+
+#도커 설치하기
+apt-cache policy docker-ce
+apt install docker-ce
+
+#도커 시스템 확인
+systemctl status docker
+---------------------------------------------------
+
+
+#jenkins 저장소 키 다운로드
+wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | sudo apt-key add -
+
+#sources.list에 추가
+echo deb http://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list
+
+
+#키 설정 방법 참고
+https://ubuntu-kr.org/workshops/l10n-workshop/2-generate-gpg-key
+https://director-joe.kr/74
+
+#gpg인증키 등록
+gpg --gen-key
+
+->여기서 나온 키 저장해두기
+ex)5E8FD6B8F90C7927A8738A469CB6DC000CAB2AB2
+
+#키 확인 명령어
+apt-get install -y gnupg2
+gpg2 --list-key
+
+#서버에 키 보내기
+gpg --send-keys --keyserver keyserver.ubuntu.com [본인키값, [ ] 빼고 입력]
+
+#apt-get 재 업데이트
+apt-get update
+
+-----------------------------------------------------
+
+#젠킨스 설치
+sudo apt-get install -y jenkins
+
+#포트번호 변경
+vi /etc/default/jenkins
+#http port 8080 > 9000
+
+#젠킨스 실행, 서비스 상태 확인
+service jenkins start
+service --status-all | grep jenkins
+#버전 확인
+dpkg -l jenkins 
+
+----------------------------------------------
+# 도커에 젠킨스 이미지 다운/확인 
+docker pull jenkins/jenkins:lts
+docker images 
+service jenkins stop
+service jenkins start
+
+https://hub.docker.com/r/jenkins/jenkins
+https://sang5c.tistory.com/56
+
+https://www.dongyeon1201.kr/c20f7d07-6f23-4134-ae8e-e730dc7b5af6
+https://www.dongyeon1201.kr/9026133b-31be-4b58-bcc7-49abbe893044
+
+docker-compose.yaml
+######################
+version: '3'
+
+services:
+    jenkins:
+        image: jenkins/jenkins:lts
+        container_name: jenkins_cicd
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /jenkins:/var/jenkins_home
+        ports:
+            - "8080:8080"
+        privileged: true
+        user: root
+
+------------------------------------------------
+docker container stop 컨테이너 id 앞3자리
+docker container rm 컨테이너 id 앞3자리
+
+
+#젠킨스 web browser 접속
+이 때 위에서 변경한 젠킨스 포트를 방화벽에서 열어놔야한다.
+#포트포워딩
+https://buildabetterworld.tistory.com/176
+
+docker exec -it [container ID] [command]
+docker exec -it 69c bash
+
+mkdir /var/jenkins_home/.ssh
+ssh-keygen -m PEM -t rsa -f /var/jenkins_home/.ssh/jenkins_ci
+
+cat jenkins_ci
+cat jenkins_ci.pub (복사할때 앞에 ssh-rsa 빼먹으면 안됨)
+
+#젠킨스 컨테이너에 접속
+docker exec -it -u 0 [container id] /bin/bash
+
+#build를 위한 도구 설치
+apt-get update -y
+apt-get install -y
+
+#도커, 파이썬, Django 다운
+apt-get install -y docker.io 
+apt-get install -y python3 pip
+pip install Django
